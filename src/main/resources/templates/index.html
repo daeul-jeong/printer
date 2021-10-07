@@ -1,0 +1,24 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+[입력]<br><br>
+<form th:action="@{/}">
+    URL : <input type="text" th:name="url"/><br><br>
+    Type : <select th:name="textType">
+    <option value="exceptHtmlTag">HTML 태그 제외</option>
+    <option value="fullText">Text 전체</option>
+</select><br><br>
+    출력 단위 묶음 : <input type="text" th:name="printUnit"/><br><br>
+    <input type="submit" value="출력"/>
+</form>
+<br><br>
+[출력]<br><br>
+<p th:text="'url: ' + ${url}"/><br>
+<p th:text="'textType: ' + ${textType}"/><br>
+<p th:text="'printUnit: ' + ${printUnit}"/><br>
+
+</body>
+</html>
