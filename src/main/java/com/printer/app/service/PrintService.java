@@ -21,18 +21,19 @@ public class PrintService {
             return new Result();
         }
         Document doc = Jsoup.connect(url).get();
-        String text = null;
+        String originText = null;
         // 텍스트 뽑을 타입 결정
         if (EXCEPT_HTML_TAG.equalsIgnoreCase(textType)) {
-            text = doc.text();
+            originText = doc.text();
         } else {
-            text = doc.html();
+            originText = doc.html();
         }
 
-        String onlyNumber = text.replaceAll(ONLY_NUMBER_REGEX, "");
+//
+        String onlyNumber = applyRegEx(originText, ONLY_NUMBER_REGEX);
         List<String> newOnlyNumbers = sortNumbers(onlyNumber);
 
-        String onlyAlpha = text.replaceAll(ONLY_ALPHABET_REGEX, "");
+        String onlyAlpha = applyRegEx(originText, ONLY_ALPHABET_REGEX);
         List<String> newOnlyAlphas =  sortAlphabet(onlyAlpha);
 
         //알파벳, 숫자 순으로 섞어 하나의 리스트로 만들기
@@ -45,7 +46,14 @@ public class PrintService {
         return result;
     }
 
-    private Result makeResult(List<String> tokens) {
+    String applyRegEx(String originText, String only_number_regex) {
+        if(originText == null){
+            throw new IllegalArgumentException();
+        }
+        return originText.replaceAll(only_number_regex, "");
+    }
+
+    Result makeResult(List<String> tokens) {
         Result.ResultBuilder result = Result.builder();
         StringBuilder sb = new StringBuilder();
         int index = 0;
@@ -61,7 +69,7 @@ public class PrintService {
         return result.build();
     }
 
-    private List<String> splitFullTextByPrintUnit(String fullText, int printUnit) {
+    List<String> splitFullTextByPrintUnit(String fullText, int printUnit) {
         List<String> tokens = new ArrayList<>();
         for (int start = 0; start < fullText.length(); start += printUnit) {
             tokens.add(fullText.substring(start, Math.min(fullText.length(), start + printUnit)));
@@ -69,7 +77,7 @@ public class PrintService {
         return tokens;
     }
 
-    private String mergeLists(List<String> newOnlyNumbers, List<String> newOnlyAlphas) {
+    String mergeLists(List<String> newOnlyNumbers, List<String> newOnlyAlphas) {
         int i = 0;
         int j = 0;
         List<String> merged_list = new ArrayList<String>();
@@ -98,20 +106,23 @@ public class PrintService {
         return fullText;
     }
 
-    private List<String> sortAlphabet(String onlyAlpha) {
-        List<String> onlyAlphas = Arrays.asList(onlyAlpha.split(""));
-        Collections.sort(onlyAlphas, Collator.getInstance(Locale.ENGLISH));
-        return onlyAlphas.stream().map(e -> {
-            int ascii = e.charAt(0);
-            if (ascii >= 97 && ascii <= 122) {
-                return e.toUpperCase();
-            } else {
-                return e.toLowerCase();
+    private static Comparator<String> ALPHABETICAL_ORDER = new Comparator<String>() {
+        public int compare(String str1, String str2) {
+            int res = String.CASE_INSENSITIVE_ORDER.compare(str1, str2);
+            if (res == 0) {
+                res = str1.compareTo(str2);
             }
-        }).collect(Collectors.toList());
+            return res;
+        }
+    };
+
+    List<String> sortAlphabet(String onlyAlpha) {
+        List<String> onlyAlphas = Arrays.asList(onlyAlpha.split(""));
+        Collections.sort(onlyAlphas, ALPHABETICAL_ORDER);
+        return onlyAlphas;
     }
 
-    private List<String> sortNumbers(String onlyNumber) {
+    List<String> sortNumbers(String onlyNumber) {
         List<Integer> onlyNumbers = Arrays.stream(onlyNumber.split(""))
                 .map(s -> Integer.parseInt(s)).sorted()
                 .collect(Collectors.toList());
