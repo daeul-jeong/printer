@@ -1,16 +1,14 @@
 package com.printer.app.service;
 
+import com.printer.app.model.Result;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.text.Collator;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 class PrintServiceTest {
@@ -19,16 +17,19 @@ class PrintServiceTest {
 
     @Test
     void process() {
+        Result result = this.printService.process("김#z0Aaa17bBZA?", 5);
+        assertThat(result.getRemainder()).isEqualTo("z");
+        assertThat(result.getUnit()).isEqualTo("A0A1a\n7aBbZ\n");
     }
 
     @Test
-    @DisplayName("의도한 정규식이 잘 동작되는지 확인")
+    @DisplayName("숫자만 남겨지는 함수가 잘 동작되는지 확인")
     void applyRegEx_onlyNumber() {
         assertThat(this.printService.applyRegEx("A1234<#@", "[^0-9]")).isEqualTo("1234");
     }
 
     @Test
-    @DisplayName("의도한 정규식이 잘 동작되는지 확인")
+    @DisplayName("알파벳만 남겨지는 함수가 잘 동작되는지 확인")
     void applyRegEx_onlyAlphabet() {
         assertThat(this.printService.applyRegEx("A1234*&^!", "[^a-zA-Z]")).isEqualTo("A");
     }
@@ -64,14 +65,34 @@ class PrintServiceTest {
     }
 
     @Test
+    @DisplayName("알파벳, 숫자가 번갈아 가며 나와야한다")
     void mergeLists() {
+        List<String> alphabet = new ArrayList<>();
+        alphabet.add("A");
+        alphabet.add("B");
+        alphabet.add("b");
+        alphabet.add("C");
+        List<String> number = new ArrayList<>();
+        number.add("1");
+        number.add("2");
+        number.add("3");
+
+        assertThat(this.printService.mergeLists(number, alphabet)).isEqualTo("A1B2b3C");
     }
 
     @Test
+    @DisplayName("문자열을 주어진 숫자 크기로 쪼갠다")
     void splitFullTextByPrintUnit() {
+        List<String> tokens = this.printService.splitFullTextByPrintUnit("1234567890", 3);
+        assertThat(tokens.size()).isEqualTo(4);
+        assertThat(tokens.get(tokens.size() - 1)).isEqualTo("0");
     }
 
     @Test
     void makeResult() {
+        List<String> tokens = this.printService.splitFullTextByPrintUnit("1234567890", 3);
+        Result result = this.printService.makeResult(tokens);
+        assertThat(result.getRemainder()).isEqualTo("0");
+        assertThat(result.getUnit()).isEqualTo("123\n456\n789\n");
     }
 }

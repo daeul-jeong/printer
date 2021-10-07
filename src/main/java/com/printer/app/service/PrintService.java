@@ -6,7 +6,6 @@ import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.text.Collator;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -16,20 +15,26 @@ public class PrintService {
     private final String ONLY_NUMBER_REGEX = "[^0-9]";
     private final String ONLY_ALPHABET_REGEX = "[^a-zA-Z]";
 
-    public Result process(String url, String textType, int printUnit) throws IOException {
-        if(url == null){
-            return new Result();
+    private static Comparator<String> ALPHABETICAL_ORDER = new Comparator<String>() {
+        public int compare(String str1, String str2) {
+            int res = String.CASE_INSENSITIVE_ORDER.compare(str1, str2);
+            if (res == 0) {
+                res = str1.compareTo(str2);
+            }
+            return res;
         }
+    };
+
+    public String getText(String url, String textType) throws IOException {
         Document doc = Jsoup.connect(url).get();
-        String originText = null;
         // 텍스트 뽑을 타입 결정
         if (EXCEPT_HTML_TAG.equalsIgnoreCase(textType)) {
-            originText = doc.text();
-        } else {
-            originText = doc.html();
+            return doc.text();
         }
+        return doc.html();
+    }
 
-//
+    public Result process(String originText, int printUnit)  {
         String onlyNumber = applyRegEx(originText, ONLY_NUMBER_REGEX);
         List<String> newOnlyNumbers = sortNumbers(onlyNumber);
 
@@ -106,16 +111,6 @@ public class PrintService {
         return fullText;
     }
 
-    private static Comparator<String> ALPHABETICAL_ORDER = new Comparator<String>() {
-        public int compare(String str1, String str2) {
-            int res = String.CASE_INSENSITIVE_ORDER.compare(str1, str2);
-            if (res == 0) {
-                res = str1.compareTo(str2);
-            }
-            return res;
-        }
-    };
-
     List<String> sortAlphabet(String onlyAlpha) {
         List<String> onlyAlphas = Arrays.asList(onlyAlpha.split(""));
         Collections.sort(onlyAlphas, ALPHABETICAL_ORDER);
@@ -129,4 +124,5 @@ public class PrintService {
         return onlyNumbers.stream()
                 .map(s -> String.valueOf(s)).collect(Collectors.toList());
     }
+
 }
