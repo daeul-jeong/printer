@@ -89,6 +89,7 @@ class PrintServiceTest {
     }
 
     @Test
+    @DisplayName("결과값 확인")
     void makeResult() {
         List<String> tokens = this.printService.splitFullTextByPrintUnit("1234567890", 3);
         Result result = this.printService.makeResult(tokens);
