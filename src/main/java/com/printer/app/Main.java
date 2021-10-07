@@ -12,6 +12,9 @@ public class Main {
     public static void main(String[] args) throws IOException {
         Document doc = Jsoup.connect("https://www.goodoc.co.kr/login").get();
 
+        String docHtml = doc.html();
+        System.out.println(docHtml);
+
         String text = "김#z0Aaa17bBZA?";
 
         String onlyNumber = text.replaceAll("[^0-9]", "");
