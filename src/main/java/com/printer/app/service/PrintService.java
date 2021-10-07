@@ -6,7 +6,6 @@ import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.net.URL;
 import java.text.Collator;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -18,6 +17,9 @@ public class PrintService {
     private final String ONLY_ALPHABET_REGEX = "[^a-zA-Z]";
 
     public Result process(String url, String textType, int printUnit) throws IOException {
+        if(url == null){
+            return new Result();
+        }
         Document doc = Jsoup.connect(url).get();
         String text = null;
         // 텍스트 뽑을 타입 결정
@@ -37,7 +39,7 @@ public class PrintService {
         String fullText = mergeLists(newOnlyNumbers, newOnlyAlphas);
 
         //입력 사이즈 대로 쪼개기
-        List<String> tokens = splifullTextByPrintUnit(fullText, printUnit);
+        List<String> tokens = splitFullTextByPrintUnit(fullText, printUnit);
 
         Result result = makeResult(tokens);
         return result;
@@ -50,6 +52,7 @@ public class PrintService {
         for (String token : tokens) {
             if(tokens.size() - 1 == index){
                 result.remainder(token);
+                continue;
             }
             sb.append(token).append("\n");
             index++;
@@ -58,7 +61,7 @@ public class PrintService {
         return result.build();
     }
 
-    private List<String> splifullTextByPrintUnit(String fullText, int printUnit) {
+    private List<String> splitFullTextByPrintUnit(String fullText, int printUnit) {
         List<String> tokens = new ArrayList<>();
         for (int start = 0; start < fullText.length(); start += printUnit) {
             tokens.add(fullText.substring(start, Math.min(fullText.length(), start + printUnit)));
