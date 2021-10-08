@@ -14,7 +14,7 @@ import java.io.IOException;
 @Slf4j
 public class PrintController {
 
-    PrintService printService;
+    private PrintService printService;
 
     public PrintController(PrintService printService) {
         this.printService = printService;
@@ -26,7 +26,6 @@ public class PrintController {
             @RequestParam(value = "textType", required = false) String textType,
             @RequestParam(value = "printUnit", required = false, defaultValue = "0") Integer printUnit,
             Model model) throws IOException {
-
         if(url == null){
             model.addAttribute("result", new Result());
             return "/index";
