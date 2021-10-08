@@ -24,17 +24,26 @@ public class PrintController {
     public String index(
             @RequestParam(value = "url", required = false) String url,
             @RequestParam(value = "textType", required = false) String textType,
-            @RequestParam(value = "printUnit", required = false, defaultValue = "0") Integer printUnit,
-            Model model) throws IOException {
+            @RequestParam(value = "printUnit", required = false, defaultValue = "1") Integer printUnit,
+            Model model)  {
+
+        Result result = new Result();
         if(url == null){
-            model.addAttribute("result", new Result());
+            model.addAttribute("result", result);
             return "/index";
         }
         log.info(">>> request : url:{},textType:{},printUnit:{}" + url, textType, printUnit);
-        String originText = this.printService.getText(url, textType);
-        Result result = this.printService.process(originText, printUnit);
-        model.addAttribute("result", result);
-        log.info(result.toString());
+
+        try{
+            String originText = this.printService.getText(url, textType);
+            result = this.printService.process(originText, printUnit);
+            log.info(result.toString());
+        }catch(Exception e){
+            log.error(e.getMessage());
+        }finally{
+            model.addAttribute("result", result);
+        }
+
         return "/index";
     }
 

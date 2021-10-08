@@ -1,15 +1,20 @@
 package com.printer.app.service;
 
 import com.printer.app.model.Result;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class PrintService {
     private final String EXCEPT_HTML_TAG = "exceptHtmlTag";
     private final String ONLY_NUMBER_REGEX = "[^0-9]";
@@ -26,20 +31,24 @@ public class PrintService {
     };
 
     public String getText(String url, String textType) throws IOException {
-        Document doc = Jsoup.connect(url).get();
-        // 텍스트 뽑을 타입 결정
-        if (EXCEPT_HTML_TAG.equalsIgnoreCase(textType)) {
-            return doc.text();
+        try {
+            Document doc = Jsoup.connect(url).get();
+            // 텍스트 뽑을 타입 결정
+            if (EXCEPT_HTML_TAG.equalsIgnoreCase(textType)) {
+                return doc.text();
+            }
+            return doc.html();
+        } catch (Exception e) {
+            throw new MalformedURLException("invalid url:"+url);
         }
-        return doc.html();
     }
 
-    public Result process(String originText, int printUnit)  {
+    public Result process(String originText, int printUnit) {
         String onlyNumber = applyRegEx(originText, ONLY_NUMBER_REGEX);
         List<String> newOnlyNumbers = sortNumbers(onlyNumber);
 
         String onlyAlpha = applyRegEx(originText, ONLY_ALPHABET_REGEX);
-        List<String> newOnlyAlphas =  sortAlphabet(onlyAlpha);
+        List<String> newOnlyAlphas = sortAlphabet(onlyAlpha);
 
         //알파벳, 숫자 순으로 섞어 하나의 리스트로 만들기
         String fullText = mergeLists(newOnlyNumbers, newOnlyAlphas);
@@ -52,7 +61,7 @@ public class PrintService {
     }
 
     String applyRegEx(String originText, String only_number_regex) {
-        if(originText == null){
+        if (originText == null) {
             throw new IllegalArgumentException();
         }
         return originText.replaceAll(only_number_regex, "");
@@ -63,7 +72,7 @@ public class PrintService {
         StringBuilder sb = new StringBuilder();
         int index = 0;
         for (String token : tokens) {
-            if(tokens.size() - 1 == index){
+            if (tokens.size() - 1 == index) {
                 result.remainder(token);
                 continue;
             }
