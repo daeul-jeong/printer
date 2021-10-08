@@ -16,6 +16,7 @@ class PrintServiceTest {
     private PrintService printService;
 
     @Test
+    @DisplayName("예제 적용해보기")
     void process() {
         Result result = this.printService.process("김#z0Aaa17bBZA?", 5);
         assertThat(result.getRemainder()).isEqualTo("z");
